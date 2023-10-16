@@ -1,0 +1,9 @@
+.nvim/
+run/
+products/
+vivado*
+.Xil/
+__pycache__/
+sim_build/
+dump.vcd
+results.xml
