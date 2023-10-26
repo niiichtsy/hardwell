@@ -1,6 +1,6 @@
 # verilog misc modules
 
-This repo contains a toolbox of miscellaneous basic Verilog modules, intended to be reused and adapted to various projects.
+This repo contains a toolbox of miscellaneous basic Verilog and SystemVerilog modules, intended to be reused and adapted to various projects.
 
 ## Building
 The modules can be built using scripts utilizing Xilinx vendor tools. To create a module, make sure Vivado is available in your PATH, then simply run:
