@@ -10,7 +10,7 @@ module subtractor #(
 
   always @(first_term or second_term or borrow_in) begin
     difference = first_term ^ second_term ^ borrow_in;
-    borrow_out = first_term < (second_term + borrow_in);
+    borrow_out = (~first_term & second_term) | (~first_term & borrow_in) | (second_term & borrow_in);
   end
 
 
