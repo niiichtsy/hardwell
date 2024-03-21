@@ -3,3 +3,4 @@ A simple module which creates a single clock cycle strobe based on a continuous 
 
 TODO:
 - [ ] Parametrize clock cycle duration of the strobe signal
+- [ ] Add optional inferring of an interrupt on the output signal port 

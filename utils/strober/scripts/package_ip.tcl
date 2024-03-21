@@ -36,7 +36,7 @@ ipx::package_project -root_dir $productsDir -vendor $env(VIVADO_VENDOR) -library
 ipx::unload_core $productsDir/component.xml
 ipx::edit_ip_in_project -upgrade true -name tmp_edit_project -directory $productsDir $productsDir/component.xml
 update_compile_order -fileset sources_1
-set_property core_revision 1 [ipx::current_core]
+set_property core_revision $env(DATESTAMP) [ipx::current_core]
 ipx::update_source_project_archive -component [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
