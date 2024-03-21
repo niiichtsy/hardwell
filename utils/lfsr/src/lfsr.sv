@@ -1,8 +1,7 @@
 module lfsr #(
-    parameter SEED = 'hBC
+    parameter [7:0] SEED = 'hBC
 ) (
     output reg [7:0] data_out,
-    inout enable,
     input clk,
     input resetn
 );
