@@ -91,7 +91,7 @@ lib:
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = arithm ]; then \
-		 for lib in $(ARITHM_LIST); do \
+		for lib in $(ARITHM_LIST); do \
 			$(call print,Building arithmetic IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
 			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
@@ -106,20 +106,20 @@ lib:
 
 clean-lib:
 	@if [ $(LIB) = all ] || [ $(LIB) = util ]; then \
+		$(call print,Cleaning utility IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
 		for lib in $(UTIL_LIST); do \
-			$(call print,Cleaning utility IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
 			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} clean-project clean-products || exit $$?; \
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = arithm ]; then \
-		 for lib in $(ARITHM_LIST); do \
-			$(call print,Cleaning arithmetic IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+		$(call print,Cleaning arithmetic IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+		for lib in $(ARITHM_LIST); do \
 			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} clean-project clean-products || exit $$?; \
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = net ]; then \
+		$(call print,Cleaning network IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
 		for lib in $(NET_LIST); do \
-			$(call print,Cleaning network IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean-project clean-products || exit $$?; \
 		done \
 	fi;
