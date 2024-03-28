@@ -3,10 +3,10 @@ include ./make_env.mk
 # Arithmetic
 ARITHM_LIBRARY_PATH := $(ROOT_DIR)/arithmetic/
 ARITHM_LIST += adder
-ARITHM_LIST += adder_subtractor
+# ARITHM_LIST += adder_subtractor
 ARITHM_LIST += half_adder
-ARITHM_LIST += half_subtractor
-ARITHM_LIST += subtractor
+# ARITHM_LIST += half_subtractor
+# ARITHM_LIST += subtractor
 
 # Utilities
 UTIL_LIBRARY_PATH := $(ROOT_DIR)/utils/

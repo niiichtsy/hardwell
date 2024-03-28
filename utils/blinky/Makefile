@@ -9,7 +9,7 @@ export VIVADO_LIBRARY := hardwell
 export VERSION := 1.0
 
 # IP library paths
-# IP_LIBRARY_PATH := ip/
+export IP_LIBRARY_PATH :=
 
 # Library dependecies
-# LIB_DEPS +=
+export IP_LIST := 

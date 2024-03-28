@@ -22,18 +22,22 @@ set jobs [get_param general.maxThreads]
 set hdl_list [glob $srcRoot/*]
 
 # List of library source files
+set lib_list []
 foreach libRoot $libIpRoot {
     foreach lib $libIpList {
         lappend lib_list [glob -nocomplain $libRoot/$lib/src/*]
     }
 }
-set lib_list [lsearch -all -inline -not -exact $lib_list {}]
+
+# A little bit of magic to remove empty strings 
+lappend hdl_lib $lib_list
+set hdl_list [lsearch -all -inline -not -exact $hdl_list {}]
 
 create_project -force $proj_name -dir $outputDir
 
 set_property TARGET_LANGUAGE VERILOG [current_project]
 
-import_files -fileset sources_1 $hdl_list $lib_list
+import_files -fileset sources_1 $hdl_list 
 
 ipx::package_project -root_dir $productsDir -vendor $env(VIVADO_VENDOR) -library $env(VIVADO_LIBRARY) -taxonomy /UserIP -import_files -set_current false -force
 

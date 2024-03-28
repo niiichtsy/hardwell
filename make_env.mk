@@ -92,20 +92,20 @@ gitlab-run-pipeline:
 ## This is not very elegant, but oh well. I'll probably figure out a better way to do this at some point
 lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
+		$(call print,Building $(call red, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(UTIL_LIST); do \
-			$(call print,Building $(call red, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "arithm" ]; then \
+		$(call print,Building $(call red, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(ARITHM_LIST); do \
-			$(call print,Building $(call red, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "net" ]; then \
+		$(call print,Building $(call red, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(NET_LIST); do \
-			$(call print,Building $(call red, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;

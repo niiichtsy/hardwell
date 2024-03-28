@@ -199,9 +199,7 @@ module eth_pkt_gen #(
     end
   end
 
-  lfsr #(
-      .SEED('hAA)
-  ) i_lfsr (
+  lfsr i_lfsr (
       .clk(clk),
       .resetn(resetn),
       .data_out(lfsr_byte_s)
