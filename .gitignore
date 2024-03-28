@@ -7,5 +7,5 @@ __pycache__/
 sim_build/
 dump.vcd
 results.xml
-./package_ip.tcl
-./upgrade_ip.tcl
+package_ip.tcl
+upgrade_ip.tcl

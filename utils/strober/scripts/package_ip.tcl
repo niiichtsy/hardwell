@@ -30,7 +30,7 @@ foreach libRoot $libIpRoot {
 }
 
 # A little bit of magic to remove empty strings 
-lappend hdl_lib $lib_list
+set hdl_list [list {*}$hdl_list {*}$lib_list ]
 set hdl_list [lsearch -all -inline -not -exact $hdl_list {}]
 
 create_project -force $proj_name -dir $outputDir
