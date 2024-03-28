@@ -1,19 +1,16 @@
 #
-# STEP #0: define input and output directories, create project
+# Package IP script
 #
 set proj_name $env(VIVADO_PROJ_NAME)
-set rev None
 
 # Sources
 set srcRoot [file normalize [pwd]/src]
-set hdlRoot [file normalize [pwd]/hdl]
-set xdcRoot [file normalize [pwd]/xdc]
-set ipRoot [file normalize [pwd]/ip]
-set bdRoot [file normalize [pwd]/bd]
-set scriptsRoot [file normalize [pwd]/scripts]
+
+# Library sources
+set libIpRoot $env(IP_LIBRARY_PATH)
+set libIpList $env(IP_LIST)
 
 # Outputs
-set proj_dir [file normalize [pwd]/project]
 set outputDir [file normalize [pwd]/run]
 set productsDir [file normalize [pwd]/products]
 
@@ -24,11 +21,19 @@ set jobs [get_param general.maxThreads]
 # List of source files
 set hdl_list [glob $srcRoot/*]
 
+# List of library source files
+foreach libRoot $libIpRoot {
+    foreach lib $libIpList {
+        lappend lib_list [glob -nocomplain $libRoot/$lib/src/*]
+    }
+}
+set lib_list [lsearch -all -inline -not -exact $lib_list {}]
+
 create_project -force $proj_name -dir $outputDir
 
 set_property TARGET_LANGUAGE VERILOG [current_project]
 
-import_files -fileset sources_1 $hdl_list
+import_files -fileset sources_1 $hdl_list $lib_list
 
 ipx::package_project -root_dir $productsDir -vendor $env(VIVADO_VENDOR) -library $env(VIVADO_LIBRARY) -taxonomy /UserIP -import_files -set_current false -force
 

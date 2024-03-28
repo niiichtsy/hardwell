@@ -3,6 +3,7 @@
 #
 set proj_name $env(VIVADO_PROJ_NAME)
 
+
 # Sources
 set srcRoot [file normalize [pwd]/src]
 

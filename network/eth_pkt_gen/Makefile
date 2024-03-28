@@ -9,8 +9,10 @@ export VIVADO_LIBRARY := hardwell
 export VERSION := 1.0
 
 # IP library paths
-UTIL_LIBRARY_PATH := ../../utils/
+UTIL_LIBRARY_PATH := $(ROOT_DIR)/utils/
+export IP_LIBRARY_PATH := $(UTIL_LIBRARY_PATH) 
 
 # Library dependecies
 UTIL_LIST += lfsr
+export IP_LIST := $(UTIL_LIST)
 

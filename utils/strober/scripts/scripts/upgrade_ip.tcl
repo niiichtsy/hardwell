@@ -1,7 +1,15 @@
 #
-# Upgrade IP script
+# STEP #0: define input and output directories, create project
 #
 set proj_name $env(VIVADO_PROJ_NAME)
+set rev None
+
+# Sources
+set hdlRoot [file normalize [pwd]/hdl]
+set xdcRoot [file normalize [pwd]/xdc]
+set ipRoot [file normalize [pwd]/ip]
+set bdRoot [file normalize [pwd]/bd]
+set scriptsRoot [file normalize [pwd]/scripts]
 
 # Outputs
 set proj_dir [file normalize [pwd]/project]
