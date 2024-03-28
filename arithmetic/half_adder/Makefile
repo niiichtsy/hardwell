@@ -5,6 +5,9 @@ export VIVADO_PROJ_NAME := half_adder
 export VIVADO_VENDOR := niiichtsy
 export VIVADO_LIBRARY := hardwell
 
+# Core version 
+export VERSION := 1.0
+
 # IP library paths
 # IP_LIBRARY_PATH := ip/
 

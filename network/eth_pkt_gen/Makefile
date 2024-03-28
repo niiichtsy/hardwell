@@ -1,7 +1,7 @@
 include ../../make_env.mk
 
 # Vivado variables (user-defined)
-export VIVADO_PROJ_NAME := clk_divider
+export VIVADO_PROJ_NAME := eth_pkt_gen
 export VIVADO_VENDOR := niiichtsy
 export VIVADO_LIBRARY := hardwell
 
@@ -9,7 +9,8 @@ export VIVADO_LIBRARY := hardwell
 export VERSION := 1.0
 
 # IP library paths
-# IP_LIBRARY_PATH := ip/
+UTIL_LIBRARY_PATH := ../../utils/
 
 # Library dependecies
-# LIB_DEPS +=
+UTIL_LIST += lfsr
+

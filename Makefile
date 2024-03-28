@@ -18,5 +18,6 @@ UTIL_LIST += strober
 
 # Networking
 NET_LIBRARY_PATH := network/
+NET_LIST += eth_pkt_gen
 
 LIB ?= all

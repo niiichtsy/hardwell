@@ -5,11 +5,12 @@ TOPLEVEL_LANG ?= verilog
 
 SIM ?= icarus
 
-DUT = lfsr
+DUT = eth_pkt_gen
 
 ROOT_DIR ?= $(shell pwd)/..
 
-VERILOG_SOURCES = $(ROOT_DIR)/src/lfsr.sv
+VERILOG_SOURCES += $(ROOT_DIR)/src/eth_pkt_gen.sv
+VERILOG_SOURCES += $(ROOT_DIR)/../../utils/lfsr/src/lfsr.sv
 
 RUN_ARGS += -y $(XILINX_VIVADO)/data/verilog/pwropt/pwropt_unisims/
 

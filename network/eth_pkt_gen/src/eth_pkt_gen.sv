@@ -1,7 +1,7 @@
 module eth_pkt_gen #(
-    parameter [0:0] INCLUDE_PREAMBLE = 0,
-    parameter [0:0] DATA_SOURCE = LFSR,
-    parameter [15:0] ETHERTYPE = ETHERNET
+    parameter INCLUDE_PREAMBLE = 1,
+    parameter DATA_SOURCE = 0,
+    parameter [15:0] ETHERTYPE = 'h8100
 ) (
     // AXI-Stream interface
     output reg [7:0] m_axis_tdata,
@@ -11,8 +11,8 @@ module eth_pkt_gen #(
 
     // Eth interface controls
     input [ 7:0] user_data,
-    input [31:0] vlan_tag,    // Currently, this is not just the Vlan tag, which is two bytes, but also the TCI (Tag control information)
-    input [11:0] length,
+    input [15:0] vlan_tag,    // Currently, this is not just the vlan tag (VID), which is 12 bits, but the entire TCI (PCP + DEI + VID)
+    input [11:0] pkt_length,
     input [47:0] source,
     input [47:0] destination,
 
@@ -24,7 +24,7 @@ module eth_pkt_gen #(
   parameter [0:0] LFSR = 0;
   parameter [0:0] USER = 1;
 
-  //Ethertype parameters
+  // Ethertype parameters
   parameter [15:0] ETHERNET = 'h0800;
   parameter [15:0] VLAN = 'h8100;
 
@@ -34,34 +34,40 @@ module eth_pkt_gen #(
   parameter SET_SOURCE = 2;
   parameter SET_ETHERTYPE = 3;
   parameter SET_DATA = 4;
+  parameter INTERPACKET_GAP = 5;
 
-  reg [ 3:0] state;
-  reg [11:0] state_counter;
+  // Regs
+  reg  [ 3:0] state;
+  reg  [11:0] state_counter;
+
+  // Wires
+  wire [ 7:0] lfsr_byte_s;
 
   always @(posedge clk) begin
     if (!resetn) begin
       m_axis_tdata  <= 'h00;
       m_axis_tlast  <= 'h0;
       m_axis_tvalid <= 'h0;
-      if (INCLUDE_PREAMBLE) state <= ADD_PREAMBLE;
+      if (INCLUDE_PREAMBLE == 1'b1) state <= ADD_PREAMBLE;
       else state <= SET_DESTINATION;
       state_counter <= 'h00;
     end else begin
 
       case (state)
 
+        // State used to add the ethernet preamble, only if set in the IP
+        // parameters
         ADD_PREAMBLE: begin
           if (m_axis_tready) begin
+            m_axis_tvalid <= 1'b1;
             if (state_counter < 'h7) begin
-              state_counter <= state_counter + 1'b1;
-              m_axis_tvalid <= 1'b1;
               m_axis_tdata <= 'b10101010;
               state <= ADD_PREAMBLE;
+              state_counter <= state_counter + 1'b1;
             end else begin
-              state_counter <= 'h00;
-              m_axis_tvalid <= 1'b1;
               m_axis_tdata <= 'b10101011;
               state <= SET_DESTINATION;
+              state_counter <= 'h00;
             end
           end else begin
             m_axis_tvalid <= 1'b0;
@@ -69,9 +75,12 @@ module eth_pkt_gen #(
           end
         end
 
+        // Send destination data
         SET_DESTINATION: begin
           if (m_axis_tready) begin
             m_axis_tvalid <= 1'b1;
+            state <= SET_DESTINATION;
+            state_counter <= state_counter + 1'b1;
             case (state_counter)
               0: m_axis_tdata <= destination[47:40];
               1: m_axis_tdata <= destination[39:32];
@@ -81,18 +90,21 @@ module eth_pkt_gen #(
               5: begin
                 m_axis_tdata <= destination[7:0];
                 state <= SET_SOURCE;
+                state_counter <= 'h00;
               end
             endcase
-            state_counter <= state_counter + 1'b1;
           end else begin
             m_axis_tvalid <= 1'b0;
             state <= state;
           end
         end
 
+        // Send source data
         SET_SOURCE: begin
           if (m_axis_tready) begin
             m_axis_tvalid <= 1'b1;
+            state <= SET_SOURCE;
+            state_counter <= state_counter + 1'b1;
             case (state_counter)
               0: m_axis_tdata <= source[47:40];
               1: m_axis_tdata <= source[39:32];
@@ -105,58 +117,100 @@ module eth_pkt_gen #(
                 state_counter <= 'h00;
               end
             endcase
-            state_counter <= state_counter + 1'b1;
           end else begin
             m_axis_tvalid <= 1'b0;
             state <= state;
           end
+        end
 
-          SET_ETHERTYPE : begin
-            if (m_axis_tready) begin
-              m_axis_tvalid <= 1'b1;
-              if (ETHERTYPE == ETHERNET) begin
-                case (state_counter)
-                  0: m_axis_tdata <= ETHERTYPE[15:8];
-                  1: begin
-                    m_axis_tdata <= ETHERTYPE[7:0];
-                    state <= SET_DATA;
-                  end
-                endcase
-              end else if (ETHERTYPE == ETHERNET) begin
-                case (state_counter)
-                  0: m_axis_tdata <= ETHERTYPE[15:8];
-                  1: m_axis_tdata <= ETHERTYPE[7:0];
-                endcase
+        SET_ETHERTYPE: begin
+          if (m_axis_tready) begin
+            m_axis_tvalid <= 1'b1;
+            state <= SET_ETHERTYPE;
+            state_counter <= state_counter + 1'b1;
+            if (ETHERTYPE == ETHERNET) begin
+              case (state_counter)
+                0: m_axis_tdata <= ETHERTYPE[15:8];
+                1: begin
+                  m_axis_tdata <= ETHERTYPE[7:0];
+                  state <= SET_DATA;
+                  state_counter <= 'h00;
+                end
+              endcase
+            end else if (ETHERTYPE == VLAN) begin
+              case (state_counter)
+                0: m_axis_tdata <= ETHERTYPE[15:8];
+                1: m_axis_tdata <= ETHERTYPE[7:0];
+                2: m_axis_tdata <= vlan_tag[15:8];
+                3: m_axis_tdata <= vlan_tag[7:0];
+                4: m_axis_tdata <= ETHERTYPE[15:8];
+                5: begin
+                  m_axis_tdata <= ETHERTYPE[7:0];
+                  state <= SET_DATA;
+                  state_counter <= 'h00;
+                end
+              endcase
+            end
+          end else begin
+            m_axis_tvalid <= 1'b0;
+            state <= state;
+          end
+        end
+
+        SET_DATA: begin
+          if (m_axis_tready) begin
+            m_axis_tvalid <= 1'b1;
+            state <= SET_DATA;
+            if (state_counter < pkt_length) begin
+              if (DATA_SOURCE == USER) begin
+                m_axis_tdata <= user_data;
+                state <= SET_DATA;
+                state_counter <= state_counter + 1'b1;
+              end else if (DATA_SOURCE == LFSR) begin
+                m_axis_tdata <= lfsr_byte_s;
+                state <= SET_DATA;
+                state_counter <= state_counter + 1'b1;
               end
+              if (state_counter == pkt_length - 1) m_axis_tlast <= 1'b1;
             end else begin
+              m_axis_tlast <= 1'b0;
               m_axis_tvalid <= 1'b0;
-              state <= state;
+              state <= INTERPACKET_GAP;
+              state_counter <= 'h00;
             end
-
-
+          end else begin
+            m_axis_tvalid <= 1'b0;
+            state <= state;
           end
+        end
 
-          SET_DATA : begin
-            if (m_axis_tready) begin
-              m_axis_tvalid <= 1'b1;
-              m_axis_tdata  <= user_data;
-              state_counter <= state_counter + 1'b1;
-            end else begin
-              m_axis_tvalid <= 1'b0;
-              state <= state;
-            end
+        INTERPACKET_GAP: begin
+          m_axis_tvalid <= 1'b0;
+          state <= INTERPACKET_GAP;
+          state_counter <= state_counter + 1'b1;
+          if (state_counter >= 'd12) begin
+            if (INCLUDE_PREAMBLE == 1'b1) state <= ADD_PREAMBLE;
+            else state <= SET_DESTINATION;
+            state_counter <= 'h00;
           end
-
         end
 
       endcase
-
-
-
-
-
     end
+  end
 
+  lfsr #(
+      .SEED('hAA)
+  ) i_lfsr (
+      .clk(clk),
+      .resetn(resetn),
+      .data_out(lfsr_byte_s)
+  );
+
+  // Simulate waves
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars(1, eth_pkt_gen);
   end
 
 endmodule

@@ -31,30 +31,37 @@ async def setup_dut_clk(dut):
 
 
 @cocotb.test()
-async def lfsr_test(dut):
-    """Test linear feedback shift register"""
+async def eth_pkt_gen_tb(dut):
+    """Test ethernet packet generator"""
+
+    dut.m_axis_tready = 1
+    dut.user_data = 0x4A
+    dut.vlan_tag = 0x003C
+    dut.pkt_length = 68
+    dut.source = 0x112233445566
+    dut.destination = 0x998877665544
 
     await setup_dut_clk(dut)
     await reset_dut(dut, CLK_PERIOD_NS * 5)
     await Timer(CLK_PERIOD_NS * 5, units="ns")
     await RisingEdge(dut.clk)
-    await Timer(CLK_PERIOD_NS * 300, units="ns")
+    await Timer(CLK_PERIOD_NS * 1000, units="ns")
 
 
-def test_lfsr_runner():
+def test_eth_pkt_gen_runner():
     sim = os.getenv("SIM", "icarus")
 
     proj_path = Path(__file__).resolve().parent
-    verilog_sources = [proj_path / "lfsr.sv"]
+    verilog_sources = [proj_path / "eth_pkt_gen.sv"]
 
     runner = get_runner(sim)()
     runner.build(
         verilog_sources=verilog_sources,
-        toplevel="lfsr",
+        toplevel="eth_pkt_gen_tb",
     )
 
-    runner.test(toplevel="lfsr", py_module="test_lfsr")
+    runner.test(toplevel="eth_pkt_gen", py_module="eth_pkt_gen_tb")
 
 
 if __name__ == "__main__":
-    test_lfsr_runner()
+    test_eth_pkt_gen_runner()

@@ -10,12 +10,15 @@ read_file = cat $1 2> /dev/null
 make_dir_link = ln -s $1 $2
 make_link = ln -s $1 $2
 print_lines = @echo $1 | tr ' ' '\n'
+red = \\e[31m$1\\e[39m
 green = \\e[32m$1\\e[39m
-print = @printf "$(call green,[$(TIMESTAMP)]) $1\n"
+yellow = \\e[33m$1\\e[39m
+print = printf "$(call green,[$(TIMESTAMP)]) $1\n"
 cmd_separator = ;
 HIDE = > /dev/null
 MUTE = @
 RM = rm -rf
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 # Xilinx tool variables
 VIVADO_RUN = $(XILINX_VIVADO)/bin/vivado
@@ -34,7 +37,7 @@ VIV_PRJ_DIR = run
 VIV_SCRIPTS_DIR = scripts
 VIV_PROD_DIR = products
 VIV_REPORTS_DIR = $(VIV_PROD_DIR)/reports
-VIV_SRC = $(VIV_SCRIPTS_DIR)/package_ip.tcl
+VIV_IP = $(VIV_SCRIPTS_DIR)/package_ip.tcl
 VIV_UPG = $(VIV_SCRIPTS_DIR)/upgrade_ip.tcl
 
 # Description
@@ -43,83 +46,85 @@ help:
 	@echo 'Usage:'
 	@echo ''
 	@echo '  make ip'
-	@echo '    Create and package a Vivado IP'
+	@echo '    Create and package a new Vivado IP'
 	@echo '  make upgrade'
 	@echo '    Upgrade an existing Vivado IP'
-	@echo '  make clean-project'
-	@echo '    Clean Vivado files produced in a previous run'
-	@echo '  make clean-products'
-	@echo '    Clean output products'
+	@echo '  make clean'
+	@echo '    Clean Vivado projects files & output products produced in a previous run'
 	@echo '  make gitlab-run-pipeline'
 	@echo '    Run job at GitLab server - compile project and create artifacts'
 	@echo '  make lib <LIB=[all | arithm | util | net]>'
 	@echo '    Create and package specified libraries'
 	@echo '  make clean-lib <LIB=[all | arithm | util | net]>'
-	@echo '    Clean output products and project files for specified libraries'
+	@echo '    Clean Vivado projects files & output products for specified libraries'
 	@echo ''
 
-.PHONY: all ip upgrade clean-project clean-products gitlab-run-pipeline lib clean-lib
-all: clean-project clean-products ip upgrade
+.PHONY: all ip upgrade clean gitlab-run-pipeline lib clean-lib
+all: clean ip upgrade
 
-ip:
-	$(call print,Creating IP for Git SHA commit $(call green,$(GIT_SHA)))
-	$(VIVADO_RUN) -mode batch -notrace -source $(VIV_SRC)
+ip: 
+	@if [ -d $(VIV_PROD_DIR) ]; then \
+	$(call print,IP $(call yellow,$(VIVADO_PROJ_NAME)) already built! Call $(call red,make upgrade) if you wish to upgrade it.); \
+	else \
+	$(call print,Creating IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); \
+	$(VIVADO_RUN) -mode batch -notrace -source $(VIV_IP); \
+	fi; 
 
 upgrade:
-	$(call print,Upgrading IP for Git SHA commit $(call green,$(GIT_SHA)))
-	$(VIVADO_RUN) -mode batch -notrace -source $(VIV_UPG)
+	@if [ ! -d $(VIV_PROD_DIR) ]; then \
+	$(call print,IP $(call yellow,$(VIVADO_PROJ_NAME)) not yet built! Call $(call red,make ip) to build it first.); \
+	else \
+	$(call print,Upgrading IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); \
+	$(VIVADO_RUN) -mode batch -notrace -source $(VIV_UPG); \
+	fi;
 
-clean-project:
-	$(call print,Cleaning project for Git SHA commit $(call green,$(GIT_SHA)))
-	$(RM) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif
-
-clean-products:
-	$(call print,Cleaning products for Git SHA commit $(call green,$(GIT_SHA)))
+clean:
+	@$(call print,Cleaning IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...)
+	@$(RM) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif \
 	$(RM) $(VIV_REPORTS_DIR) $(VIV_PROD_DIR)
 
 gitlab-run-pipeline:
-	$(call print,Triggering remote runner for Git SHA commit $(call green,$(GIT_SHA)))
+	@$(call print,Triggering remote runner for Git SHA commit $(call green,$(GIT_SHA))...)
 	@echo Run remote pipeline at $(GIT_BRANCH).
-	$(MUTE) $(PIPELINE_TRIGGER)
+	@$(MUTE) $(PIPELINE_TRIGGER)
 
 ## This is not very elegant, but oh well. I'll probably figure out a better way to do this at some point
 lib:
 	@if [ $(LIB) = all ] || [ $(LIB) = util ]; then \
 		for lib in $(UTIL_LIST); do \
-			$(call print,Building utility IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+			$(call print,Building $(call red, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = arithm ]; then \
 		for lib in $(ARITHM_LIST); do \
-			$(call print,Building arithmetic IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+			$(call print,Building $(call red, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = net ]; then \
 		for lib in $(NET_LIST); do \
-			$(call print,Building network IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+			$(call print,Building $(call red, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 
-
 clean-lib:
 	@if [ $(LIB) = all ] || [ $(LIB) = util ]; then \
-		$(call print,Cleaning utility IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+		$(call print,Cleaning $(call red, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(UTIL_LIST); do \
-			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} clean-project clean-products || exit $$?; \
+			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = arithm ]; then \
-		$(call print,Cleaning arithmetic IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+		$(call print,Cleaning $(call red, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(ARITHM_LIST); do \
-			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} clean-project clean-products || exit $$?; \
+			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
 	@if [ $(LIB) = all ] || [ $(LIB) = net ]; then \
-		$(call print,Cleaning network IP Libraries for Git SHA commit $(call green,$(GIT_SHA))); \
+		$(call print,Cleaning $(call red, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(NET_LIST); do \
-			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean-project clean-products || exit $$?; \
+			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
