@@ -14,6 +14,7 @@ cmd_separator = ;
 red = \\e[31m$1\\e[39m
 green = \\e[32m$1\\e[39m
 yellow = \\e[33m$1\\e[39m
+cyan = \\e[36m$1\\e[39m
 print = printf "$(call green,[$(TIMESTAMP)]) $1\n"
 
 # Aliases
@@ -63,12 +64,12 @@ help:
 .PHONY: all ip upgrade clean gitlab-run-pipeline lib clean-lib
 all: clean ip upgrade
 
-ip: lib 
+ip: dep 
 	@if [ -d $(VIV_PROD_DIR) ]; then \
 	$(call print,IP $(call yellow,$(VIVADO_PROJ_NAME)) already built! Call $(call red,make upgrade) if you wish to upgrade it.); \
 	else \
 	$(call print,Creating IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); \
-	$(VIV_RUN) -mode batch -notrace -source $(VIV_IP); \
+	$(VIV_RUN) -mode batch -notrace -source $(VIV_IP) $(HIDE); \
 	fi; 
 
 upgrade:
@@ -76,7 +77,7 @@ upgrade:
 	$(call print,IP $(call yellow,$(VIVADO_PROJ_NAME)) not yet built! Call $(call red,make ip) to build it first.); \
 	else \
 	$(call print,Upgrading IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); \
-	$(VIV_RUN) -mode batch -notrace -source $(VIV_UPG); \
+	$(VIV_RUN) -mode batch -notrace -source $(VIV_UPG) $(HIDE); \
 	fi;
 
 clean:
@@ -92,39 +93,51 @@ gitlab-run-pipeline:
 ## This is not very elegant, but oh well. I'll probably figure out a better way to do this at some point
 lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
-		$(call print,Building $(call red, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		$(call print,Building $(call cyan, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(UTIL_LIST); do \
 			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "arithm" ]; then \
-		$(call print,Building $(call red, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		$(call print,Building $(call cyan, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(ARITHM_LIST); do \
 			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "net" ]; then \
-		$(call print,Building $(call red, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		$(call print,Building $(call cyan, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(NET_LIST); do \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
 
+# Dependencies as specified in IP build scripts
+dep: 
+	@for lib in $(UTIL_LIST); do \
+		$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} ip || exit $$?; \
+	done
+	@for lib in $(ARITHM_LIST); do \
+		$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} ip || exit $$?; \
+	done
+	@for lib in $(NET_LIST); do \
+		$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} ip || exit $$?; \
+	done
+
 clean-lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
-		$(call print,Cleaning $(call red, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		$(call print,Cleaning $(call cyan, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(UTIL_LIST); do \
 			$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "arithm" ]; then \
-		$(call print,Cleaning $(call red, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		$(call print,Cleaning $(call cyan, arithmetic) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(ARITHM_LIST); do \
 			$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "net" ]; then \
-		$(call print,Cleaning $(call red, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		$(call print,Cleaning $(call cyan, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(NET_LIST); do \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \

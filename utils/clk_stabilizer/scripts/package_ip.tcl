@@ -40,11 +40,15 @@ set_property TARGET_LANGUAGE VERILOG [current_project]
 import_files -fileset sources_1 $hdl_list 
 
 ipx::package_project -root_dir $productsDir -vendor $env(VIVADO_VENDOR) -library $env(VIVADO_LIBRARY) -taxonomy /UserIP -import_files -set_current false -force
-
-# Define additional inferences as needed
 ipx::unload_core $productsDir/component.xml
 ipx::edit_ip_in_project -upgrade true -name tmp_edit_project -directory $productsDir $productsDir/component.xml
 update_compile_order -fileset sources_1
+
+# Define additional inferences as needed
+ipx::infer_bus_interface out_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+ipx::infer_bus_interface stable_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+ipx::infer_bus_interface prog_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+
 set_property version $env(VERSION) [ipx::current_core]
 set_property core_revision $env(DATESTAMP) [ipx::current_core]
 ipx::update_source_project_archive -component [ipx::current_core]
