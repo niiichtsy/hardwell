@@ -34,7 +34,7 @@ async def setup_dut_clk(dut):
 async def eth_pkt_gen_tb(dut):
     """Test ethernet packet generator"""
 
-    dut.m_axis_tready = 1
+    dut.m_axis_tready = 0
     dut.user_data = 0x4A
     dut.vlan_tag = 0x003C
     dut.pkt_length = 68
@@ -43,7 +43,14 @@ async def eth_pkt_gen_tb(dut):
 
     await setup_dut_clk(dut)
     await reset_dut(dut, CLK_PERIOD_NS * 5)
-    await Timer(CLK_PERIOD_NS * 5, units="ns")
+    await Timer(CLK_PERIOD_NS * 10, units="ns")
+    dut.m_axis_tready = 1
+    await RisingEdge(dut.clk)
+    await Timer(CLK_PERIOD_NS * 80, units="ns")
+    dut.m_axis_tready = 0
+    await RisingEdge(dut.clk)
+    await Timer(CLK_PERIOD_NS * 120, units="ns")
+    dut.m_axis_tready = 1
     await RisingEdge(dut.clk)
     await Timer(CLK_PERIOD_NS * 1000, units="ns")
 
@@ -52,7 +59,7 @@ def test_eth_pkt_gen_runner():
     sim = os.getenv("SIM", "icarus")
 
     proj_path = Path(__file__).resolve().parent
-    verilog_sources = [proj_path / "eth_pkt_gen.sv"]
+    verilog_sources = [proj_path / "eth_pkt_gen.v"]
 
     runner = get_runner(sim)()
     runner.build(

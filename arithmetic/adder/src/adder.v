@@ -12,5 +12,4 @@ module adder #(
     {carry_out, sum} = first_term + second_term + carry_in;
   end
 
-
 endmodule

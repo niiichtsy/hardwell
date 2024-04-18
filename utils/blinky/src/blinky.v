@@ -36,5 +36,5 @@ module blinky #(
 
     end
   end
-
 endmodule
+

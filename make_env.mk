@@ -18,11 +18,11 @@ cyan = \\e[36m$1\\e[39m
 print = printf "$(call green,[$(TIMESTAMP)]) $1\n"
 
 # Aliases
-HIDE = > /dev/null
+HIDE = 2> /dev/null
 MUTE = @
 RM = rm -rf
-SELF_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+export SELF_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+export ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # Git variables
 export GIT_SHA = $(shell git rev-parse --short HEAD)
@@ -36,10 +36,17 @@ VIV_RUN = $(XILINX_VIVADO)/bin/vivado
 VIV_SCRIPTS_DIR = scripts
 VIV_PRJ_DIR = run
 VIV_PROD_DIR = products
+VIV_SRC_DIR = src
 VIV_REPORTS_DIR = $(VIV_PROD_DIR)/reports
 VIV_IP = $(VIV_SCRIPTS_DIR)/package_ip.tcl
-VIV_UPG = $(VIV_SCRIPTS_DIR)/upgrade_ip.tcl
 
+# Library lists
+ARITHM_LIBRARY_PATH := $(ROOT_DIR)/arithmetic/
+ARITHM_LIST ?=
+UTIL_LIBRARY_PATH := $(ROOT_DIR)/utils/
+UTIL_LIST ?=
+NET_LIBRARY_PATH := $(ROOT_DIR)/network/
+NET_LIST ?=
 LIB ?= all
 
 # Description
@@ -48,9 +55,7 @@ help:
 	@echo 'Usage:'
 	@echo ''
 	@echo '  make ip'
-	@echo '    Create and package a new Vivado IP'
-	@echo '  make upgrade'
-	@echo '    Upgrade an existing Vivado IP'
+	@echo '    Create and package Vivado IP'
 	@echo '  make clean'
 	@echo '    Clean Vivado projects files & output products produced in a previous run'
 	@echo '  make gitlab-run-pipeline'
@@ -61,24 +66,9 @@ help:
 	@echo '    Clean Vivado projects files & output products for specified libraries'
 	@echo ''
 
-.PHONY: all ip upgrade clean gitlab-run-pipeline lib clean-lib
-all: clean ip upgrade
+.PHONY: all clean gitlab-run-pipeline lib clean-lib ip
 
-ip: dep 
-	@if [ -d $(VIV_PROD_DIR) ]; then \
-	$(call print,IP $(call yellow,$(VIVADO_PROJ_NAME)) already built! Call $(call red,make upgrade) if you wish to upgrade it.); \
-	else \
-	$(call print,Creating IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); \
-	$(VIV_RUN) -mode batch -notrace -source $(VIV_IP) $(HIDE); \
-	fi; 
-
-upgrade:
-	@if [ ! -d $(VIV_PROD_DIR) ]; then \
-	$(call print,IP $(call yellow,$(VIVADO_PROJ_NAME)) not yet built! Call $(call red,make ip) to build it first.); \
-	else \
-	$(call print,Upgrading IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); \
-	$(VIV_RUN) -mode batch -notrace -source $(VIV_UPG) $(HIDE); \
-	fi;
+ip: $(VIV_PROD_DIR)
 
 clean:
 	@$(call print,Cleaning IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...)
@@ -90,7 +80,6 @@ gitlab-run-pipeline:
 	@echo Run remote pipeline at $(GIT_BRANCH).
 	@$(MUTE) $(PIPELINE_TRIGGER)
 
-## This is not very elegant, but oh well. I'll probably figure out a better way to do this at some point
 lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
 		$(call print,Building $(call cyan, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
@@ -111,18 +100,6 @@ lib:
 		done \
 	fi;
 
-# Dependencies as specified in IP build scripts
-dep: 
-	@for lib in $(UTIL_LIST); do \
-		$(MAKE) -C $(UTIL_LIBRARY_PATH)$${lib} ip || exit $$?; \
-	done
-	@for lib in $(ARITHM_LIST); do \
-		$(MAKE) -C $(ARITHM_LIBRARY_PATH)$${lib} ip || exit $$?; \
-	done
-	@for lib in $(NET_LIST); do \
-		$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} ip || exit $$?; \
-	done
-
 clean-lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
 		$(call print,Cleaning $(call cyan, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
@@ -140,26 +117,5 @@ clean-lib:
 		$(call print,Cleaning $(call cyan, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(NET_LIST); do \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean || exit $$?; \
-		done \
-	fi;
-
-# Temporary helper function to update all scripts while I tweak them to perfection
-update-scripts:
-	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
-		for lib in $(UTIL_LIST); do \
-			cp ./package_ip.tcl $(UTIL_LIBRARY_PATH)$${lib}/scripts/package_ip.tcl; \
-			cp ./upgrade_ip.tcl $(UTIL_LIBRARY_PATH)$${lib}/scripts/upgrade_ip.tcl; \
-		done \
-	fi;
-	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "arithm" ]; then \
-		for lib in $(ARITHM_LIST); do \
-			cp ./package_ip.tcl $(ARITHM_LIBRARY_PATH)$${lib}/scripts/package_ip.tcl; \
-			cp ./upgrade_ip.tcl $(ARITHM_LIBRARY_PATH)$${lib}/scripts/upgrade_ip.tcl; \
-		done \
-	fi;
-	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "net" ]; then \
-		for lib in $(NET_LIST); do \
-			cp ./package_ip.tcl $(NET_LIBRARY_PATH)$${lib}/scripts/package_ip.tcl; \
-			cp ./upgrade_ip.tcl $(NET_LIBRARY_PATH)$${lib}/scripts/upgrade_ip.tcl; \
 		done \
 	fi;

@@ -9,11 +9,6 @@ make ip
 ```
 which should create run/ and products/ directories. To use the IP, simply add the products/ directory path to the IP repository of your project.
 
-To upgrade an existing module, run: 
-```
-make upgrade 
-```
-
 To build an entire library, invoke:
 ```
 make lib LIB=<library of your choice>

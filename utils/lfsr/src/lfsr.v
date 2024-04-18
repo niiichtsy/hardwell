@@ -25,11 +25,9 @@ module lfsr #(
     end
   end
 
-
   // Simulate waves
   initial begin
     $dumpfile("dump.vcd");
     $dumpvars(1, lfsr);
   end
-
 endmodule

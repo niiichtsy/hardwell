@@ -1,5 +1,5 @@
 module eth_pkt_gen #(
-    parameter INCLUDE_PREAMBLE = 1,
+    parameter INCLUDE_PREAMBLE = 0,
     parameter DATA_SOURCE = 0,
     parameter [15:0] ETHERTYPE = 'h8100
 ) (
@@ -212,3 +212,4 @@ module eth_pkt_gen #(
   end
 
 endmodule
+kkk
