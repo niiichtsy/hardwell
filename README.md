@@ -15,7 +15,7 @@ make lib LIB=<library of your choice>
 ```
 from the project's root directory (by default, creates all available libraries). Afterwards, add the library folder to the IP repository of your project.
 If called from a module directory, it will build that module's dependencies. 
-Same goes for ```clean-lib` ```.
+Same goes for ```clean-lib```.
 
 Tested and built using Vivado 2021.2, though I imagine the process will remain the same for future releases.
 

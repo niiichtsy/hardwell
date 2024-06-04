@@ -58,8 +58,8 @@ module eth_pkt_gen #(
         // State used to add the ethernet preamble, only if set in the IP
         // parameters
         ADD_PREAMBLE: begin
-          if (m_axis_tready) begin
-            m_axis_tvalid <= 1'b1;
+          m_axis_tvalid <= 1'b1;
+          if (m_axis_tready && m_axis_tvalid) begin
             if (state_counter < 'h7) begin
               m_axis_tdata <= 'b10101010;
               state <= ADD_PREAMBLE;
@@ -70,15 +70,14 @@ module eth_pkt_gen #(
               state_counter <= 'h00;
             end
           end else begin
-            m_axis_tvalid <= 1'b0;
             state <= state;
           end
         end
 
         // Send destination data
         SET_DESTINATION: begin
+          m_axis_tvalid <= 1'b1;
           if (m_axis_tready) begin
-            m_axis_tvalid <= 1'b1;
             state <= SET_DESTINATION;
             state_counter <= state_counter + 1'b1;
             case (state_counter)
@@ -94,15 +93,14 @@ module eth_pkt_gen #(
               end
             endcase
           end else begin
-            m_axis_tvalid <= 1'b0;
             state <= state;
           end
         end
 
         // Send source data
         SET_SOURCE: begin
-          if (m_axis_tready) begin
-            m_axis_tvalid <= 1'b1;
+          m_axis_tvalid <= 1'b1;
+          if (m_axis_tready && m_axis_tvalid) begin
             state <= SET_SOURCE;
             state_counter <= state_counter + 1'b1;
             case (state_counter)
@@ -118,14 +116,13 @@ module eth_pkt_gen #(
               end
             endcase
           end else begin
-            m_axis_tvalid <= 1'b0;
             state <= state;
           end
         end
 
         SET_ETHERTYPE: begin
-          if (m_axis_tready) begin
-            m_axis_tvalid <= 1'b1;
+          m_axis_tvalid <= 1'b1;
+          if (m_axis_tready && m_axis_tvalid) begin
             state <= SET_ETHERTYPE;
             state_counter <= state_counter + 1'b1;
             if (ETHERTYPE == ETHERNET) begin
@@ -152,15 +149,13 @@ module eth_pkt_gen #(
               endcase
             end
           end else begin
-            m_axis_tvalid <= 1'b0;
             state <= state;
           end
         end
 
         SET_DATA: begin
-          if (m_axis_tready) begin
-            m_axis_tvalid <= 1'b1;
-            state <= SET_DATA;
+          m_axis_tvalid <= 1'b1;
+          if (m_axis_tready && m_axis_tvalid) begin
             if (state_counter < pkt_length) begin
               if (DATA_SOURCE == USER) begin
                 m_axis_tdata <= user_data;
@@ -179,7 +174,6 @@ module eth_pkt_gen #(
               state_counter <= 'h00;
             end
           end else begin
-            m_axis_tvalid <= 1'b0;
             state <= state;
           end
         end
@@ -206,10 +200,9 @@ module eth_pkt_gen #(
   );
 
   // Simulate waves
-  initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars(1, eth_pkt_gen);
-  end
+  // initial begin
+  //   $dumpfile("dump.vcd");
+  //   $dumpvars(1, eth_pkt_gen);
+  // end
 
 endmodule
-kkk

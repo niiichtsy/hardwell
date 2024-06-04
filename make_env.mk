@@ -18,7 +18,7 @@ cyan = \\e[36m$1\\e[39m
 print = printf "$(call green,[$(TIMESTAMP)]) $1\n"
 
 # Aliases
-HIDE = 2> /dev/null
+HIDE = &>/dev/null
 MUTE = @
 RM = rm -rf
 export SELF_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))

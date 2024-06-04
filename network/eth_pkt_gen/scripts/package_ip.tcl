@@ -8,13 +8,13 @@ import_files -fileset sources_1 $hdl_list
 
 ipx::package_project -root_dir $productsDir -vendor $env(VIVADO_VENDOR) -library $env(VIVADO_LIBRARY) -taxonomy /UserIP -import_files -set_current false -force
 
-# Define additional inferences as needed
 ipx::unload_core $productsDir/component.xml
 ipx::edit_ip_in_project -upgrade true -name tmp_edit_project -directory $productsDir $productsDir/component.xml
 update_compile_order -fileset sources_1
 set_property version $env(VERSION) [ipx::current_core]
 set_property core_revision $env(DATESTAMP) [ipx::current_core]
 
+# Define additional inferences as needed
 set_property widget {checkBox} [ipgui::get_guiparamspec -name "INCLUDE_PREAMBLE" -component [ipx::current_core] ]
 set_property value true [ipx::get_user_parameters INCLUDE_PREAMBLE -of_objects [ipx::current_core]]
 set_property value true [ipx::get_hdl_parameters INCLUDE_PREAMBLE -of_objects [ipx::current_core]]
@@ -29,6 +29,7 @@ set_property widget {comboBox} [ipgui::get_guiparamspec -name "ETHERTYPE" -compo
 set_property value_validation_type pairs [ipx::get_user_parameters ETHERTYPE -of_objects [ipx::current_core]]
 set_property value_validation_pairs {VLAN 0x00008100 ETHERNET 0x00000800} [ipx::get_user_parameters ETHERTYPE -of_objects [ipx::current_core]]
 
+# Package the project
 ipx::update_source_project_archive -component [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]

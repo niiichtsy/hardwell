@@ -1,11 +1,14 @@
+# Editor stuff
 .nvim/
+
+# Vivado products 
 run/
 products/
 vivado*
 .Xil/
+
+# Cocotb and testbench files
 __pycache__/
 sim_build/
 dump.vcd
 results.xml
-package_ip.tcl
-upgrade_ip.tcl

@@ -44,14 +44,14 @@ async def eth_pkt_gen_tb(dut):
     await setup_dut_clk(dut)
     await reset_dut(dut, CLK_PERIOD_NS * 5)
     await Timer(CLK_PERIOD_NS * 10, units="ns")
-    dut.m_axis_tready = 1
     await RisingEdge(dut.clk)
+    dut.m_axis_tready = 1
     await Timer(CLK_PERIOD_NS * 80, units="ns")
+    await RisingEdge(dut.clk)
     dut.m_axis_tready = 0
-    await RisingEdge(dut.clk)
     await Timer(CLK_PERIOD_NS * 120, units="ns")
-    dut.m_axis_tready = 1
     await RisingEdge(dut.clk)
+    dut.m_axis_tready = 1
     await Timer(CLK_PERIOD_NS * 1000, units="ns")
 
 
