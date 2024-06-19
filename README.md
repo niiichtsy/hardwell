@@ -1,6 +1,6 @@
 # hardwell
 
-hardwell contains a toolbox of miscellaneous basic HDL (mainly Verilog and SystemVerilog) modules, intended to be reused and adapted to various projects.
+hardwell is a toolbox of miscellaneous general-purpose HDL modules (mainly written in Verilog and SystemVerilog), intended to be reused and adapted to various projects.
 
 ## Building
 The modules can be built using scripts utilizing Xilinx vendor tools. To create a single module, move to its directory, then simply run:

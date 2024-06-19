@@ -1,9 +1,10 @@
 include ./make_env.mk
 
 # Arithmetic
-ARITHM_LIST += adder
-# ARITHM_LIST += adder_subtractor
+ARITHM_LIST += rc_adder
 ARITHM_LIST += half_adder
+ARITHM_LIST += full_adder 
+# ARITHM_LIST += adder_subtractor
 # ARITHM_LIST += half_subtractor
 # ARITHM_LIST += subtractor
 

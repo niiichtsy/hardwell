@@ -1,7 +1,7 @@
 include ../../make_env.mk
 
 # Vivado variables (user-defined)
-export VIVADO_PROJ_NAME := adder
+export VIVADO_PROJ_NAME := full_adder
 export VIVADO_VENDOR := niiichtsy
 export VIVADO_LIBRARY := hardwell
 

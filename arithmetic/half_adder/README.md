@@ -1,3 +1,3 @@
 # half_adder
 
-Parametrizable-width full half_adder with an output carry flag. Combinational.
+Simple half-adder with an output carry flag. Combinational.
