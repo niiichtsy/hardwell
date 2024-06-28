@@ -1,7 +1,7 @@
 include ../../make_env.mk
 
 # Vivado variables (user-defined)
-export VIVADO_PROJ_NAME := clk_stabilizer
+export VIVADO_PROJ_NAME := clk_switch
 export VIVADO_VENDOR := niiichtsy
 export VIVADO_LIBRARY := hardwell
 

@@ -11,7 +11,7 @@ ARITHM_LIST += full_adder
 # Utilities
 UTIL_LIST += blinky
 UTIL_LIST += clk_divider
-UTIL_LIST += clk_stabilizer
+UTIL_LIST += clk_switch
 UTIL_LIST += lfsr
 UTIL_LIST += strober
 

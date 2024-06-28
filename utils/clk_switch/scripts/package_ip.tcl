@@ -15,9 +15,9 @@ set_property version $env(VERSION) [ipx::current_core]
 set_property core_revision $env(DATESTAMP) [ipx::current_core]
 
 # Define additional inferences as needed
-ipx::infer_bus_interface out_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
-ipx::infer_bus_interface stable_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
-ipx::infer_bus_interface prog_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+ipx::infer_bus_interface clk_in0 xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+ipx::infer_bus_interface clk_in1 xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+ipx::infer_bus_interface clk_out xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
 
 # Package the project
 ipx::update_source_project_archive -component [ipx::current_core]
