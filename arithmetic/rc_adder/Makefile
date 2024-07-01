@@ -9,14 +9,14 @@ export VIVADO_LIBRARY := hardwell
 export VERSION := 1.0
 
 # IP library paths
-export IP_LIBRARY_PATH := $(ARITHM_LIBRARY_PATH)
+export DEP_LIBRARY_PATH := $(ARITHM_LIBRARY_PATH)
 
 # Library dependecies
 ARITHM_LIST += full_adder
-export IP_LIST := $(ARITHM_LIST)
+export DEP_LIST := $(ARITHM_LIST)
 
 # Make products target
-$(VIV_PROD_DIR): $(shell find $(VIV_SRC_DIR)) $(shell find $(IP_LIBRARY_PATH)$(IP_LIST)/$(VIV_SRC_DIR) $(HIDE))
-	@$(call print, Creating IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); 
+$(VIV_PROD_DIR): $(shell find $(VIV_SRC_DIR)) $(shell find $(DEP_LIBRARY_PATH)$(DEP_LIST)/$(VIV_SRC_DIR) $(HIDE))
+	@$(call print, Creating DEP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); 
 	@$(VIV_RUN) -mode batch -notrace -source $(VIV_IP) $(HIDE);
 

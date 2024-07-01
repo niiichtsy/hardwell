@@ -7,8 +7,8 @@ set proj_name $env(VIVADO_PROJ_NAME)
 set srcRoot [file normalize [pwd]/src]
 
 # Library sources
-set libIpRoot $env(IP_LIBRARY_PATH)
-set libIpList $env(IP_LIST)
+set libIpRoot $env(DEP_LIBRARY_PATH)
+set libIpList $env(DEP_LIST)
 
 # Outputs
 set outputDir [file normalize [pwd]/run]
