@@ -15,8 +15,7 @@ export DEP_LIBRARY_PATH :=
 export DEP_LIST := 
 
 # Make products target
-$(VIV_PROD_DIR): $(shell find $(VIV_SRC_DIR)) $(shell find $(DEP_LIBRARY_PATH)$(DEP_LIST)/$(VIV_SRC_DIR) $(HIDE))
-	@$(call print, Creating DEP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); 
+$(VIV_PROD_DIR): $(shell find $(VIV_SRC_DIR)) $(shell find $(DEP_LIBRARY_PATH)$(DEP_LIST)*.v $(2HIDE)) $(shell find $(DEP_LIBRARY_PATH)$(DEP_LIST)/$(VIV_SRC_DIR) $(2HIDE))
+	@$(call print_nonl,Building IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); 
 	@$(VIV_RUN) -mode batch -notrace -source $(VIV_IP) $(HIDE);
-
-
+	@$(call print_nots, $(call green,OK));

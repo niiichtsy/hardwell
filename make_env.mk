@@ -15,10 +15,14 @@ red = \\e[31m$1\\e[39m
 green = \\e[32m$1\\e[39m
 yellow = \\e[33m$1\\e[39m
 cyan = \\e[36m$1\\e[39m
+# Helper print functions: regular, no newline and no timestamp
 print = printf "$(call green,[$(TIMESTAMP)]) $1\n"
+print_nonl = printf "$(call green,[$(TIMESTAMP)]) $1"
+print_nots = printf "$1\n"
 
 # Aliases
-HIDE = &>/dev/null
+HIDE = >/dev/null
+2HIDE = &>/dev/null
 MUTE = @
 RM = rm -rf
 export SELF_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -75,11 +79,6 @@ clean:
 	@$(RM) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif \
 	$(RM) $(VIV_REPORTS_DIR) $(VIV_PROD_DIR)
 
-gitlab-run-pipeline:
-	@$(call print,Triggering remote runner for Git SHA commit $(call green,$(GIT_SHA))...)
-	@echo Run remote pipeline at $(GIT_BRANCH).
-	@$(MUTE) $(PIPELINE_TRIGGER)
-
 lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
 		$(call print,Building $(call cyan, utility) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
@@ -119,3 +118,9 @@ clean-lib:
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
+
+gitlab-run-pipeline:
+	@$(call print,Triggering remote runner for Git SHA commit $(call green,$(GIT_SHA))...)
+	@echo Run remote pipeline at $(GIT_BRANCH).
+	@$(MUTE) $(PIPELINE_TRIGGER)
+

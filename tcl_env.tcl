@@ -8,7 +8,9 @@ set srcRoot [file normalize [pwd]/src]
 
 # Library sources
 set libIpRoot $env(DEP_LIBRARY_PATH)
-set libIpList $env(DEP_LIST)
+if {[info exists ::env(DEP_LIST)]} {
+    set libIpList $env(DEP_LIST)
+}
 
 # Outputs
 set outputDir [file normalize [pwd]/run]
@@ -20,12 +22,18 @@ set jobs [get_param general.maxThreads]
 
 # List of source files
 set hdl_list [glob $srcRoot/*]
+puts "HDL sources: $hdl_list"
 
 # List of library source files
 set lib_list []
-foreach libRoot $libIpRoot {
-    foreach lib $libIpList {
-        lappend lib_list [glob -nocomplain $libRoot/$lib/src/*]
+
+# List of library source files
+if {[info exists ::env(DEP_LIST)]} {
+    foreach libRoot $libIpRoot {
+        foreach lib $libIpList {
+            lappend lib_list [glob -nocomplain $libRoot/{$lib}.v]
+            lappend lib_list [glob -nocomplain $libRoot/$lib/src/*]
+        }
     }
 }
 
