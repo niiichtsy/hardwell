@@ -47,7 +47,6 @@ async def eth_pkt_gen_tb(dut):
     await setup_dut_clk(dut)
     await reset_dut(dut, CLK_PERIOD_NS * 5)
     while 1:
-        await RisingEdge(dut.clk)
         if dut.m_axis_tvalid.value == 1:
             dut.m_axis_tready.value = 1
         else:
@@ -57,6 +56,7 @@ async def eth_pkt_gen_tb(dut):
                 break
             else:
                 pkt_counter += 1
+        await RisingEdge(dut.clk)
 
     assert dut.m_axis_tlast.value == 1
 
@@ -98,7 +98,7 @@ def test_eth_pkt_gen_runner():
     sim = os.getenv("SIM", "icarus")
 
     proj_path = Path(__file__).resolve().parent
-    verilog_sources = [proj_path / "eth_pkt_gen.v"]
+    verilog_sources = [proj_path / "eth_pkt_gen.sv"]
 
     runner = get_runner(sim)()
     runner.build(

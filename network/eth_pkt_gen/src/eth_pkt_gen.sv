@@ -4,20 +4,20 @@ module eth_pkt_gen #(
   parameter [15:0] ETHERTYPE        = 'h8100
 ) (
     // AXI-Stream interface
-    output reg [7:0] m_axis_tdata,
-    output reg m_axis_tlast,
-    output reg m_axis_tvalid,
-    input m_axis_tready,
+    output logic [7:0] m_axis_tdata,
+    output logic m_axis_tlast,
+    output logic m_axis_tvalid,
+    input logic m_axis_tready,
 
     // Eth interface controls
-    input [ 7:0] user_data,
-    input [15:0] vlan_tag,    // Currently, this is not just the vlan tag (VID), which is 12 bits, but the entire TCI (PCP + DEI + VID)
-    input [11:0] pkt_length,
-    input [47:0] source,
-    input [47:0] destination,
+    input logic [ 7:0] user_data,
+    input logic [15:0] vlan_tag,    // Currently, this is not just the vlan tag (VID), which is 12 bits, but the entire TCI (PCP + DEI + VID)
+    input logic [11:0] pkt_length,
+    input logic [47:0] source,
+    input logic [47:0] destination,
 
-    input clk,
-    input resetn
+    input logic clk,
+    input logic resetn
 );
 
   // Data source parameters
@@ -38,8 +38,9 @@ module eth_pkt_gen #(
   parameter IDLE = 6;
 
   // Regs
-  reg  [ 4:0] state;
-  reg  [11:0] state_counter;
+  reg  [ 2:0] state = 'h0;
+  reg  [11:0] state_counter = 'h000;
+  reg  [11:0] curr_pkt_length = 'h000;
 
   // Wires
   wire [ 7:0] lfsr_byte_s;
@@ -56,8 +57,14 @@ module eth_pkt_gen #(
       case (state)
 
         IDLE: begin
-          if (INCLUDE_PREAMBLE == 1'b1) state <= ADD_PREAMBLE;
-          else state <= SET_DESTINATION;
+          m_axis_tvalid   <= 1'b0;
+          curr_pkt_length <= pkt_length;
+          state_counter   <= 'h00;
+          if (INCLUDE_PREAMBLE == 1'b1) begin
+            state <= ADD_PREAMBLE;
+          end else begin
+            state <= SET_DESTINATION;
+          end
         end
 
         // State used to add the ethernet preamble, only if set in the IP
@@ -72,8 +79,8 @@ module eth_pkt_gen #(
               state_counter <= state_counter + 1'b1;
             end else begin
               m_axis_tdata <= 'hD5;
-              state <= SET_DESTINATION;
               state_counter <= 'h00;
+              state <= SET_DESTINATION;
             end
           end else begin
             state <= state;
@@ -83,7 +90,7 @@ module eth_pkt_gen #(
         // Send destination data
         SET_DESTINATION: begin
           m_axis_tvalid <= 1'b1;
-          m_axis_tdata  <= destination[47:40];  // This needs to be set in the same cycle as tvalid
+          m_axis_tdata  <= destination[47:40];  // This needs to be set in the same cycle as tvalid rising edge
           if (m_axis_tready && m_axis_tvalid) begin
             state <= SET_DESTINATION;
             state_counter <= state_counter + 1'b1;
@@ -96,6 +103,8 @@ module eth_pkt_gen #(
                 m_axis_tdata <= destination[7:0];
                 state <= SET_SOURCE;
                 state_counter <= 'h00;
+              end
+              default: begin
               end
             endcase
           end else begin
@@ -120,6 +129,7 @@ module eth_pkt_gen #(
                 state <= SET_ETHERTYPE;
                 state_counter <= 'h00;
               end
+              default: m_axis_tdata <= 'h00;
             endcase
           end else begin
             state <= state;
@@ -139,6 +149,7 @@ module eth_pkt_gen #(
                   state <= SET_DATA;
                   state_counter <= 'h00;
                 end
+                default: m_axis_tdata <= 'h00;
               endcase
             end else if (ETHERTYPE == VLAN) begin
               case (state_counter)
@@ -152,6 +163,7 @@ module eth_pkt_gen #(
                   state <= SET_DATA;
                   state_counter <= 'h00;
                 end
+                default: m_axis_tdata <= 'h00;
               endcase
             end
           end else begin
@@ -162,7 +174,7 @@ module eth_pkt_gen #(
         SET_DATA: begin
           m_axis_tvalid <= 1'b1;
           if (m_axis_tready && m_axis_tvalid) begin
-            if (state_counter < pkt_length) begin
+            if (state_counter < curr_pkt_length) begin
               if (DATA_SOURCE == USER) begin
                 m_axis_tdata <= user_data;
                 state <= SET_DATA;
@@ -172,7 +184,7 @@ module eth_pkt_gen #(
                 state <= SET_DATA;
                 state_counter <= state_counter + 1'b1;
               end
-              if (state_counter == pkt_length - 1) m_axis_tlast <= 1'b1;
+              if (state_counter == curr_pkt_length - 1) m_axis_tlast <= 1'b1;
             end else begin
               m_axis_tlast <= 1'b0;
               m_axis_tvalid <= 1'b0;
@@ -201,6 +213,11 @@ module eth_pkt_gen #(
           end
         end
 
+        default: begin
+          state <= IDLE;
+          state_counter <= 'h00;
+        end
+
       endcase
     end
   end
@@ -211,10 +228,49 @@ module eth_pkt_gen #(
       .data_out(lfsr_byte_s)
   );
 
+`ifdef FORMAL
+  always @(posedge clk) begin : test
+    if (!resetn) begin
+    end else begin
+      a_data_overflow : assert (m_axis_tdata <= 'hFF);
+      case (state)
+        ADD_PREAMBLE: begin
+          a_preamble_length : assert (state_counter <= 'h6);
+        end
+        SET_DESTINATION, SET_SOURCE: begin
+          a_mac_length : assert (state_counter <= 'h5);
+        end
+        SET_ETHERTYPE: begin
+          if (ETHERTYPE == ETHERNET) begin
+            a_ethernet_length : assert (state_counter <= 'h1);
+          end else if (ETHERTYPE == VLAN) begin
+            a_vlan_length : assert (state_counter <= 'h6);
+          end
+        end
+        SET_DATA: begin
+          a_data_length : assert (state_counter <= curr_pkt_length);
+        end
+        INTERPACKET_GAP: begin
+          a_ipg_length : assert (state_counter <= 'd11);
+        end
+        IDLE: begin
+          a_idle_length : assert (state_counter <= 'h00);
+        end
+        default: begin
+        end
+      endcase
+    end
+  end
+`endif
+
+  // `ifdef SIM
   //Simulate waves
   initial begin
     $dumpfile("dump.vcd");
     $dumpvars(1, eth_pkt_gen);
   end
+  // `endif
+
 
 endmodule
+

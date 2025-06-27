@@ -1,0 +1,29 @@
+[tasks]
+basic bmc
+nofullskip prove
+prove
+cover
+noverific cover
+basic cover : default
+
+[options]
+cover:
+mode cover
+--
+prove:
+mode prove
+--
+bmc: 
+mode bmc
+--
+
+[engines]
+smtbmc boolector
+
+[script]
+read -formal eth_pkt_gen.sv lfsr.v 
+prep -top eth_pkt_gen
+
+[files]
+../src/eth_pkt_gen.sv
+../../../utils/lfsr/src/lfsr.v
