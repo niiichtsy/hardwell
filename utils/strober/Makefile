@@ -1,22 +1,30 @@
 include ../../make_env.mk
 
 # Vivado variables (user-defined)
-export VIVADO_PROJ_NAME := strober
+export VIVADO_PROJ_NAME := adder_subtractor
 export VIVADO_VENDOR := niiichtsy
 export VIVADO_LIBRARY := hardwell
 
 # Core version 
 export VERSION := 1.0
-
-# IP library paths
-export DEP_LIBRARY_PATH :=
+export REVISION := 1
 
 # Library dependecies
-export DEP_LIST := 
+export DEP_LIST += 
 
-# Make products target
-$(VIV_PROD_DIR): $(shell find $(VIV_SRC_DIR)) $(shell find $(DEP_LIBRARY_PATH)$(DEP_LIST)*.v $(2HIDE)) $(shell find $(DEP_LIBRARY_PATH)$(DEP_LIST)/$(VIV_SRC_DIR) $(2HIDE))
+# Constraint sources
+export XDC_LIST += 
+
+.PHONY: all clean ip
+
+clean:
+	@$(call print,Cleaning IP $(call yellow,$(HLS_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...)
+	@$(RM) $(HLS_PROJ_NAME) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif \
+	$(RM) $(VIV_REPORTS_DIR) $(VIV_PROD_DIR) $(HIDE)
+
+ip: $(VIV_PROD_DIR)
+
+$(VIV_PROD_DIR): $(shell find $(VIV_SRC_DIR) $(DEP_LIST) $(XDC_LIST))
 	@$(call print_nonl,Building IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...); 
 	@$(VIV_RUN) -mode batch -notrace -source $(VIV_IP) $(HIDE);
 	@$(call print_nots, $(call green,OK));
-

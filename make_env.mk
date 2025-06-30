@@ -1,26 +1,17 @@
 # Useful hacks
-export DATESTAMP := $(shell date +"%H%d%m%g")
-TIMESTAMP = $(shell date +"%T")
-copy_file = cp $1 $2
-copy_dir = cp -r $1 $2
-remove_file = rm -rf $1
-remove_dir = rm -rf $1
-mk_dir = mkdir -p $1
-read_file = cat $1 2> /dev/null
-make_dir_link = ln -s $1 $2
-make_link = ln -s $1 $2
-print_lines = @echo $1 | tr ' ' '\n'
-cmd_separator = ;
 red = \\e[31m$1\\e[39m
 green = \\e[32m$1\\e[39m
 yellow = \\e[33m$1\\e[39m
 cyan = \\e[36m$1\\e[39m
+
 # Helper print functions: regular, no newline and no timestamp
 print = printf "$(call green,[$(TIMESTAMP)]) $1\n"
 print_nonl = printf "$(call green,[$(TIMESTAMP)]) $1"
 print_nots = printf "$1\n"
 
-# Aliases
+# Aliases & useful env variables
+export DATESTAMP := $(shell date +"%H%d%m%g")
+TIMESTAMP = $(shell date +"%T")
 HIDE = >/dev/null
 2HIDE = &>/dev/null
 MUTE = @
@@ -37,12 +28,12 @@ export GIT_BRANCH = $(shell git symbolic-ref --short HEAD)
 
 # Vivado variables
 VIV_RUN = $(XILINX_VIVADO)/bin/vivado
-VIV_SCRIPTS_DIR = scripts
-VIV_PRJ_DIR = run
-VIV_PROD_DIR = products
-VIV_SRC_DIR = src
-VIV_REPORTS_DIR = $(VIV_PROD_DIR)/reports
+export VIV_SCRIPTS_DIR = scripts
+export VIV_PRJ_DIR = run
+export VIV_PROD_DIR = products
+export VIV_SRC_DIR = src
 VIV_IP = $(VIV_SCRIPTS_DIR)/package_ip.tcl
+export PART := 
 
 # Library lists
 ARITHM_LIBRARY_PATH := $(ROOT_DIR)/arithmetic/
@@ -70,14 +61,7 @@ help:
 	@echo '    Clean Vivado projects files & output products for specified libraries'
 	@echo ''
 
-.PHONY: all clean gitlab-run-pipeline lib clean-lib ip
-
-ip: $(VIV_PROD_DIR)
-
-clean:
-	@$(call print,Cleaning IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...)
-	@$(RM) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif \
-	$(RM) $(VIV_REPORTS_DIR) $(VIV_PROD_DIR)
+.PHONY: all gitlab-run-pipeline lib clean-lib 
 
 lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
