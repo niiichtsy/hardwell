@@ -18,3 +18,5 @@ UTIL_LIST += strober
 # Networking
 NET_LIST += eth_pkt_gen
 
+# Algorithms
+ALGO_LIST += cobs_enc

@@ -42,6 +42,8 @@ UTIL_LIBRARY_PATH := $(ROOT_DIR)/utils/
 UTIL_LIST ?=
 NET_LIBRARY_PATH := $(ROOT_DIR)/network/
 NET_LIST ?=
+ALGO_LIBRARY_PATH := $(ROOT_DIR)/algorithm/
+ALGO_LIST ?=
 LIB ?= all
 
 # Description
@@ -55,9 +57,9 @@ help:
 	@echo '    Clean Vivado projects files & output products produced in a previous run'
 	@echo '  make gitlab-run-pipeline'
 	@echo '    Run job at GitLab server - compile project and create artifacts'
-	@echo '  make lib <LIB=[all | arithm | util | net]>'
+	@echo '  make lib <LIB=[all | arithm | util | net | algo]>'
 	@echo '    Create and package specified libraries'
-	@echo '  make clean-lib <LIB=[all | arithm | util | net]>'
+	@echo '  make clean-lib <LIB=[all | arithm | util | net | algo]>'
 	@echo '    Clean Vivado projects files & output products for specified libraries'
 	@echo ''
 
@@ -82,6 +84,12 @@ lib:
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} ip || exit $$?; \
 		done \
 	fi;
+	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "net" ]; then \
+		$(call print,Building $(call cyan, algorithm) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		for lib in $(ALGO_LIST); do \
+			$(MAKE) -C $(ALGO_LIBRARY_PATH)$${lib} ip || exit $$?; \
+		done \
+	fi;
 
 clean-lib:
 	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "util" ]; then \
@@ -100,6 +108,12 @@ clean-lib:
 		$(call print,Cleaning $(call cyan, network) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
 		for lib in $(NET_LIST); do \
 			$(MAKE) -C $(NET_LIBRARY_PATH)$${lib} clean || exit $$?; \
+		done \
+	fi;
+	@if [ "$(LIB)" = "all" ] || [ "$(LIB)" = "net" ]; then \
+		$(call print,Cleaning $(call cyan, algorithm) IP Libraries for Git SHA commit $(call green,$(GIT_SHA))...); \
+		for lib in $(ALGO_LIST); do \
+			$(MAKE) -C $(ALGO_LIBRARY_PATH)$${lib} clean || exit $$?; \
 		done \
 	fi;
 

@@ -27,4 +27,6 @@ arithmetic - basic arithmetic logic circuits.
 utils - various utility blocks.
 
 network - networking tools.
+
+algorithm - blocks implementing ready-to-use algorithms.
 ```
