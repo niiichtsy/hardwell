@@ -18,8 +18,8 @@ export XDC_LIST +=
 .PHONY: all clean ip
 
 clean:
-	@$(call print,Cleaning IP $(call yellow,$(HLS_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...)
-	@$(RM) $(HLS_PROJ_NAME) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif \
+	@$(call print,Cleaning IP $(call yellow,$(VIVADO_PROJ_NAME)) for Git SHA commit $(call green,$(GIT_SHA))...)
+	@$(RM) $(VIVADO_PROJ_NAME) $(VIV_PRJ_DIR) vivado* .Xil *dynamic* *.log *.xpe *.mif \
 	$(RM) $(VIV_REPORTS_DIR) $(VIV_PROD_DIR) $(HIDE)
 
 ip: $(VIV_PROD_DIR)
